@@ -119,13 +119,32 @@ Bigint mult_big(Bigint a, Bigint b)
 Bigint sub_big(Bigint a, Bigint b)
 {
 	Bigint c;
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
+	c.n = a.n;
+	for (int i=0; i<a.n; ++i) {
+		c.digits[i] = 0;
+	}
+
+	for (int i=0; i<a.n-b.n; ++i) {
+		b.digits[i+b.n] = 0;
+	}
+	b.n = a.n;
+
+	for (int i=0; i<a.n; ++i) {
+		if (a.digits[i] < b.digits[i]) {
+			a.digits[i] += 10;
+			for (int j=i+1; j<a.n; ++j) {
+				if (a.digits[j] != 0) {
+					a.digits[j] -= 1;
+					break;
+				} else {
+					a.digits[j] = 9;
+				}
+			}
+		}
+		c.digits[i] = a.digits[i]-b.digits[i];
+	}
+
+	compress(&c);
 	return c;
 }
 
@@ -177,7 +196,7 @@ int compare_big(Bigint a, Bigint b)
 // Multiplies by 10
 // Since we hvae stored our big int value in digit-wise form,
 // we only need to shift our integer array to the right once.
-void shift_right(Bigint * a )
+void shift_right(Bigint * a)
 {
 	// Copy stuff
 	for( int i = a->n; i > 0; i-- )
@@ -193,15 +212,13 @@ void shift_right(Bigint * a )
 // Divides by 10
 // Since we hvae stored our big int value in digit-wise form,
 // we only need to shift our integer array to the left once.
-void shift_left(Bigint * a )
+void shift_left(Bigint * a)
 {
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
-	// YOUR CODE HERE
+	for (int i=0; i<a->n-1; ++i) {
+		a->digits[i] = a->digits[i+1];
+	}
+	// Set to new smaller size
+	a->n -= 1;
 }
 
 // Computes c = a % b
@@ -249,7 +266,7 @@ Bigint mod_big(Bigint a, Bigint b)
 	return a;
 }
 
-// The Lucas–Lehmer primality test (LLT) algorithm
+// The Lucasï¿½Lehmer primality test (LLT) algorithm
 // Tests if Mp = 2^p - 1 is a prime number
 // Returns 1 if Mp is prime, 0 otherwise
 int LLT(int p)
@@ -268,7 +285,7 @@ int LLT(int p)
 
 	for( int i = 0; i < p - 2; i++ )
 	{
-		// s = ((s × s) - 2) mod Mp
+		// s = ((s ï¿½ s) - 2) mod Mp
 		s = mult_big(s, s);
 		s = sub_big(s, two);
 		s = mod_big(s, Mp);
@@ -293,42 +310,62 @@ int is_small_prime(int p)
 	return 1;
 }
 
-int main(void) {
-	for (int i=0; i<length(tests); ++i) {
-		is_small_prime(tests[i]);
-	}
-}
-
 // Scan through to p = 550, checking for prime Mp's along the way
 int main(void)
 {
+	Bigint a;
+	a.n = 10;
+	a.digits[0] = 0;
+	a.digits[1] = 0;
+	a.digits[2] = 0;
+	a.digits[3] = 0;
+	a.digits[4] = 0;
+	a.digits[5] = 0;
+	a.digits[6] = 0;
+	a.digits[7] = 0;
+	a.digits[8] = 0;
+	a.digits[9] = 9;
+
+	Bigint b;
+	b.n = 7;
+	b.digits[0] = 1;
+	b.digits[1] = 2;
+	b.digits[2] = 3;
+	b.digits[3] = 4;
+	b.digits[4] = 5;
+	b.digits[5] = 6;
+	b.digits[6] = 7;
+
+	Bigint c = sub_big(a, b);
+	print_big(c);
+
 	// Test all p values, 2 to 550
-	for( int p = 2; p < 550; p++ )
-	{
-		// Only test Mp for primacy if p itself is also prime
-		if( is_small_prime(p) )
-		{
-			printf("Testing p = %d ", p);
-
-			// Run LLT test of Mp
-			int is_prime = LLT(p);
-
-			if(is_prime)
-			{
-				printf("found prime Mp = ");
-				Bigint one  = digit_to_big(1);
-				Bigint two  = digit_to_big(2);
-
-				// Mp = 2^p - 1
-				Bigint Mp = pow_big(two, p);
-				Mp =  sub_big(Mp, one);
-				print_big(Mp);
-			}
-			else
-				printf("Mp not prime\n");
-
-		}
-	}
+//	for( int p = 2; p < 550; p++ )
+//	{
+//		// Only test Mp for primacy if p itself is also prime
+//		if( is_small_prime(p) )
+//		{
+//			printf("Testing p = %d ", p);
+//
+//			// Run LLT test of Mp
+//			int is_prime = LLT(p);
+//
+//			if(is_prime)
+//			{
+//				printf("found prime Mp = ");
+//				Bigint one  = digit_to_big(1);
+//				Bigint two  = digit_to_big(2);
+//
+//				// Mp = 2^p - 1
+//				Bigint Mp = pow_big(two, p);
+//				Mp =  sub_big(Mp, one);
+//				print_big(Mp);
+//			}
+//			else
+//				printf("Mp not prime\n");
+//
+//		}
+//	}
 
 	return 0;
 }
