@@ -31,6 +31,9 @@ BigInt11Size: .word 2
 BigInt12: .word 2 1
 BigInt12Size: .word 2
 
+BigInt14: .word 4 1
+BigInt14Size: .word 2
+
 BigInt30: .word 0 3
 BigInt30Size: .word 2
 
@@ -82,17 +85,17 @@ MersenneNotPrimeString:	.asciiz " Mp not prime\n"
 	.text
 
 main:
-	jal small_prime_tests				# run small prime tests
-	jal compress_tests					# run compress tests
-	jal shift_right_tests				# run shift right tests
-	jal shift_left_tests				# run shift left tests
-	jal compare_tests					# run comparison tests
-	jal multiply_tests					# run multiply tests
-	jal power_tests						# run power tests
-	jal subtract_tests					# run subtraction tests
-	jal mod_tests						# run modulus tests
+	# jal small_prime_tests				# run small prime tests
+	# jal compress_tests					# run compress tests
+	# jal shift_right_tests				# run shift right tests
+	# jal shift_left_tests				# run shift left tests
+	# jal compare_tests					# run comparison tests
+	# jal multiply_tests					# run multiply tests
+	# jal power_tests						# run power tests
+	# jal subtract_tests					# run subtraction tests
+	# jal mod_tests						# run modulus tests
 	jal llt_tests						# run llt tests
-	jal mersenne_scan					# run the mersenne scan
+	# jal mersenne_scan					# run the mersenne scan
 	# EXIT
 	li $v0, 10			# exit code
 	syscall				# exit
@@ -186,7 +189,7 @@ llt_tests:
 	syscall             				# print the msg
 
 	# BEGIN TEST LLT(11)
-	li $a0, 3
+	li $a0, 11
 	jal lucas_lehmer_test
 	move $a0, $v0
 	li $v0, 1							# load print integer syscall code
@@ -197,15 +200,15 @@ llt_tests:
 	syscall             				# print the new line
 
 	# BEGIN TEST LLT(67)
-	li $a0, 67
-	jal lucas_lehmer_test
-	move $a0, $v0
-	li $v0, 1							# load print integer syscall code
-	syscall
+	# li $a0, 67
+	# jal lucas_lehmer_test
+	# move $a0, $v0
+	# li $v0, 1							# load print integer syscall code
+	# syscall
 
-	la $a0, NEWLINE     				# load linefeed into $a0 for printing
-	li $v0, 4          					# load print string syscall code
-	syscall             				# print the new line
+	# la $a0, NEWLINE     				# load linefeed into $a0 for printing
+	# li $v0, 4          					# load print string syscall code
+	# syscall             				# print the new line
 
 	move $ra, $s2
 	jr $ra
@@ -242,7 +245,7 @@ mod_tests:
 	jal big_int_pop_stack				# pop b from stack
 	jal big_int_pop_stack				# pop a from stack
 
-	# BEGIN TEST 48 % 12
+	# # BEGIN TEST 48 % 12
 	la $a0, BigInt48					# a0 = &bigint48[0]
 	lw $a1, BigInt48Size				# a1 = bigint48.size
 	jal big_int_push_stack				# v0 = create new big int on stack
@@ -268,7 +271,7 @@ mod_tests:
 	jal big_int_pop_stack				# pop b from stack
 	jal big_int_pop_stack				# pop a from stack
 
-	# BEGIN TEST 9e9 - 7654321
+	# # BEGIN TEST 9e9 - 7654321
 	la $a0, BigInt9e9					# a0 = &bigint9e9[0]
 	lw $a1, BigInt9e9Size				# a1 = bigint9e.size
 	jal big_int_push_stack				# v0 = create new big int on stack
@@ -749,7 +752,7 @@ lucas_lehmer_test:
 	move $a2, $s0						# a2 = p
 	# pow(a0 = &2.size; a1 = &result; a2 = p)
 	jal big_int_pow
-	move $s4, $v0						# s4 = Mp = 2^p - 1
+	move $s4, $v0						# s4 = Mp = 2^p
 
 	jal big_int_zero_push_stack			# d = new big int on stack
 	move $a2, $v0						# a2 = &d.size
@@ -757,7 +760,12 @@ lucas_lehmer_test:
 	move $a1, $s1						# a1 = &1.size
 	jal big_int_subtract
 	# (we dont need big int 1 anymore)
-	move $s1 , $v0						# s1 = &(Mp - 1) 
+	move $s1 , $v0						# s1 = &(2^p - 1) 
+
+	# REMOVE
+	move $a0, $s1
+	jal big_int_full_print
+
 
 	la $a0, BigInt4					# a0 = &bigint4
 	lw $a1, BigInt4Size				# a1 = bigint4.size
@@ -778,27 +786,42 @@ lucas_lehmer_test:
 	sw $s0, ($sp)					# sp = s0 = p
 	li $s0, 0						# i = 0
 	lucas_lehmer_test_loop:
-		# REMOVE ME
-		# move $a0, $s4
-		# jal big_int_full_print
-		# move $a0, $s3
-		# jal big_int_full_print
-		# REMOVE ME
 
 		move $a0, $s4					# a0 = &s
 		move $a1, $s3					# a1 = &s copy
 		move $a2, $s5					# a2 = a5 = &product result
 		jal big_int_multiply			# s * s
 
+		# REMOVE ME
+		move $a0, $s5
+		jal big_int_full_print
+		la $a0, NEWLINE     				# load linefeed into $a0 for printing
+		li $v0, 4          					# load print string syscall code
+		syscall             				# print the new line
+
 		move $a0, $s5					# a0 = &product
 		move $a1, $s2					# a1 = &2.size
 		move $a2, $s6					# a2 = s6 = &sub result
 		jal big_int_subtract
 
+		# REMOVE ME
+		move $a0, $s6
+		jal big_int_full_print
+		la $a0, NEWLINE     				# load linefeed into $a0 for printing
+		li $v0, 4          					# load print string syscall code
+		syscall             				# print the new line
+
 		move $a0, $s6					# a0 = &sub result
 		move $a1, $s1					# a1 = &Mp
 		move $a2, $s7					# a2 = &mod result 
 		jal big_int_mod
+
+		# REMOVE ME
+		move $a0, $s7
+		jal big_int_full_print
+		la $a0, NEWLINE     				# load linefeed into $a0 for printing
+		li $v0, 4          					# load print string syscall code
+		syscall             				# print the new line
 
 		# copy mod result into s4
 		move $a0, $s4					# a0 = &mult input
@@ -819,13 +842,6 @@ lucas_lehmer_test:
 
 	jal big_int_zero_push_stack		# bigint 0
 	move $s0, $v0
-
-	# REMOVE ME
-	move $a0, $s7
-	jal big_int_full_print
-	move $a0, $s0
-	jal big_int_full_print
-	# REMOVE ME
 
 	move $a0, $s7 
 	move $a1, $s0
@@ -1048,24 +1064,27 @@ big_int_push_and_copy:
 	# a1 = address of big int b (result)
 	# a2 = int p
 big_int_pow:
-	move $v1, $ra
-	jal big_int_push_and_copy	# v0 = a0 copy on stack
-	move $ra, $v1
-	move $t0, $v0				# t = &copy.size
-
 	# push the s registers on the stack to get saved
-	subu $sp, $sp, 32					# make room for all saved registers
-	sw $s0, ($sp)						# store s0 on stack
-	sw $s1, 4($sp)						# store s1 on stack
-	sw $s2, 8($sp)						# store s2 on stack
-	sw $s3, 12($sp)						# store s3 on stack
-	sw $s4, 16($sp)						# store s4 on stack
-	sw $s5, 20($sp)						# store s5 on stack
-	sw $s6, 24($sp)						# store s6 on stack
-	sw $s7, 28($sp)						# store s7 on stack
+	subu $sp, $sp, 36					# make room for all saved registers
+	sw $ra, ($sp)						# store return address
+	sw $s0, 4($sp)						# store s0 on stack
+	sw $s1, 8($sp)						# store s1 on stack
+	sw $s2, 12($sp)						# store s2 on stack
+	sw $s3, 16($sp)						# store s3 on stack
+	sw $s4, 20($sp)						# store s4 on stack
+	sw $s5, 24($sp)						# store s5 on stack
+	sw $s6, 28($sp)						# store s6 on stack
+	sw $s7, 32($sp)						# store s7 on stack
 
-	move $s5, $t0 		# s5 = &copy.size
-	move $s0, $a0		# s0 = &a.size
+	# make copy1 of &a.size on stack
+	jal big_int_push_and_copy	# v0 = a0 copy on stack
+	move $s5, $v0
+
+	# another copy for &a.size
+	jal big_int_push_and_copy			# v0 = &a.size copy
+	move $s0, $v0						# s0 = copy
+
+	# move $s0, $a0		# s0 = &a.size
 	move $s1, $a1		# s1 = &b.size
 	move $s2, $a2		# s2 = p
 	move $s4, $ra		# s4 = return address
@@ -1084,19 +1103,22 @@ big_int_pow:
 		addi $s3, $s3, 1
 		bne $s3, $s2, big_int_pow_loop
 
+	# pop the first copy in s0
+	jal big_int_pop_stack
 	
-	lw $s0, ($sp)						# restore s0 from stack
-	lw $s1, 4($sp)						# restore s1 from stack
-	lw $s2, 8($sp)						# restore s2 from stack
-	lw $s3, 12($sp)						# restore s2 from stack
-	lw $s4, 16($sp)						# restore s2 from stack
-	lw $s5, 20($sp)						# restore s2 from stack
-	lw $s6, 24($sp)						# restore s2 from stack
-	lw $s7, 28($sp)						# restore s2 from stack
-	addi $sp, $sp, 32					# pop all the saved registers from stack
+	# pop the second copy in s5
+	jal big_int_pop_stack
 
-	jal big_int_pop_stack			# pop the copy of a ($s5)
-	move $ra, $v1
+	lw $ra, ($sp)						# restore s0 from stack
+	lw $s0, 4($sp)						# restore s0 from stack
+	lw $s1, 8($sp)						# restore s1 from stack
+	lw $s2, 12($sp)						# restore s2 from stack
+	lw $s3, 16($sp)						# restore s2 from stack
+	lw $s4, 20($sp)						# restore s2 from stack
+	lw $s5, 24($sp)						# restore s2 from stack
+	lw $s6, 28($sp)						# restore s2 from stack
+	lw $s7, 32($sp)						# restore s2 from stack
+	addi $sp, $sp, 36					# pop all the saved registers from stack
 	jr $ra
 
 	# PARAMETERS:
@@ -1205,23 +1227,26 @@ big_int_multiply:
 	# v0 = address of (a - b) = &c
 big_int_subtract:
 	# push the s registers on the stack to get saved
-	subu $sp, $sp, 32					# make room for all saved registers
-	sw $s0, ($sp)						# store s0 on stack
-	sw $s1, 4($sp)						# store s1 on stack
-	sw $s2, 8($sp)						# store s2 on stack
-	sw $s3, 12($sp)						# store s3 on stack
-	sw $s4, 16($sp)						# store s4 on stack
-	sw $s5, 20($sp)						# store s5 on stack
-	sw $s6, 24($sp)						# store s6 on stack
-	sw $s7, 28($sp)						# store s7 on stack
+	subu $sp, $sp, 36					# make room for all saved registers
+	sw $ra, ($sp)						# store return address
+	sw $s0, 4($sp)						# store s0 on stack
+	sw $s1, 8($sp)						# store s1 on stack
+	sw $s2, 12($sp)						# store s2 on stack
+	sw $s3, 16($sp)						# store s3 on stack
+	sw $s4, 20($sp)						# store s4 on stack
+	sw $s5, 24($sp)						# store s5 on stack
+	sw $s6, 28($sp)						# store s6 on stack
+	sw $s7, 32($sp)						# store s7 on stack
 
-	move $s0, $ra		# s0 = return address
-	jal big_int_push_and_copy # v0 = &(copy of a).size
-	move $s1, $v0		# s1 = &a.size
-	lw $s3, ($s1)		# s3 = a.size
-	move $s2, $a1		# s2 = &b.size
-	move $t9, $s2		# t9 = &b.size
-	lw $s4, ($s2)		# s4 = b.size
+	jal big_int_push_and_copy 	# v0 = &(copy of a).size
+	move $s1, $v0				# s1 = &a.size
+	lw $s3, ($s1)				# s3 = a.size
+
+	move $a0, $a1				# a0 = &b.size
+	jal big_int_push_and_copy 	# v0 = &(copy of b).size
+	move $s2, $v0				# s1 = &(copy of b).size
+	move $s0, $s2				# s0 = &b.size
+	lw $s4, ($s2)				# s4 = b.size
 
 	move $s6, $a2		# s6 = &c.size
 	move $s7, $s6		# s7 = &c.size
@@ -1246,7 +1271,7 @@ big_int_subtract:
 		addi $t1, $t1, 1	# t1++
 		bne $t1, $t0, big_int_sub_assign_zero_loop # t1 != a.size - b.size
 	skip_assign_zero_loop:
-	sw $s3 ($t9)		# b.size = a.size
+	sw $s3 ($s0)		# b.size = a.size
 
 	li $t0, 0		# t0 = i = 0
 	li $t8, 9		# t8 = 9
@@ -1288,19 +1313,20 @@ big_int_subtract:
 	move $a0, $s7						# a0 = &c.size, for compression
 	jal big_int_compress				# compress and return c
 	jal big_int_pop_stack				# pop the copy of a from stack
-	move $ra, $s0						# restore return address
+	jal big_int_pop_stack				# pop the copy of b from stack
 	move $v0, $s7						# v0 = &c.size
 
 	# restore the s registers
-	lw $s0, ($sp)						# restore s0 from stack
-	lw $s1, 4($sp)						# restore s1 from stack
-	lw $s2, 8($sp)						# restore s2 from stack
-	lw $s3, 12($sp)						# restore s2 from stack
-	lw $s4, 16($sp)						# restore s2 from stack
-	lw $s5, 20($sp)						# restore s2 from stack
-	lw $s6, 24($sp)						# restore s2 from stack
-	lw $s7, 28($sp)						# restore s2 from stack
-	addi $sp, $sp, 32					# pop all the saved registers from stack
+	lw $ra, ($sp)
+	lw $s0, 4($sp)						# restore s0 from stack
+	lw $s1, 8($sp)						# restore s1 from stack
+	lw $s2, 12($sp)						# restore s2 from stack
+	lw $s3, 16($sp)						# restore s2 from stack
+	lw $s4, 20($sp)						# restore s2 from stack
+	lw $s5, 24($sp)						# restore s2 from stack
+	lw $s6, 28($sp)						# restore s2 from stack
+	lw $s7, 32($sp)						# restore s2 from stack
+	addi $sp, $sp, 36					# pop all the saved registers from stack
 	jr $ra
 
 	# PARAMETERS:
@@ -1346,6 +1372,7 @@ big_int_mod:
 	exit_big_int_mod_shift_loop:
 	move $a0, $s5
 	jal big_int_shift_left
+
 	big_int_mod_sub_outer_loop:
 		move $a0, $s5	# a0 = &bcopy.size
 		move $a1, $s2	# a1 = &b.size
@@ -1353,11 +1380,22 @@ big_int_mod:
 		beq $v0, -1, exit_big_int_mod_sub_outer_loop
 
 		big_int_mod_sub_inner_loop:
+			#REMOVE ME
+			# move $a0, $s1
+			# jal big_int_full_print
+			# # #REMOVE ME
+
+			# # #REMOVE ME
+			# move $a0, $s5
+			# jal big_int_full_print
+			# # #REMOVE ME
+
 			move $a0, $s1	# a0 = &a.size
 			move $a1, $s5	# a1 = &bcopy.size
 			jal big_int_compare
 			beq $v0, -1, exit_big_int_mod_sub_inner_loop
-			
+		
+
 			move $a0, $s1	# a0 = &a.size
 			move $a1, $s5	# a1 = &bcopy.size
 			move $a2, $s6	# a2 = &c.size
@@ -1372,6 +1410,7 @@ big_int_mod:
 		exit_big_int_mod_sub_inner_loop:
 		move $a0, $s5
 		jal big_int_shift_left
+
 		b big_int_mod_sub_outer_loop
 
 	exit_big_int_mod_sub_outer_loop:
@@ -1408,7 +1447,7 @@ big_int_compress:
 	mul $t4, $t1, $t5   					# t4 = offset to bottom of the stack
 	add $t0, $t0, $t4						# set t0 to address of most significant digit
 	li $t3, 1								# loop exit condition (when i=1)
-	bgt $t1, $t3, big_int_compress_loop 	# only start the loop if the size greater than 1
+	ble $t1, $t3, big_int_compress_exit 	# only start the loop if the size greater than 1
 	big_int_compress_loop:
 		lw $t2, ($t0)						# t2 = bigint.digits[i]
 		bne $t2, $0, big_int_compress_exit	# if (bigint.digits[i]==0)
